@@ -151,7 +151,8 @@
 
 			private function has_shortcode($shortcode = null) {
 				if($shortcode) {
-					preg_match('/'.get_shortcode_regex().'/s', get_post(get_the_ID())->post_content, $matches);
+					$post = get_post(get_the_ID());
+					preg_match('/'.get_shortcode_regex().'/s', $post->post_content, $matches);
 					if (is_array($matches) && in_array( $shortcode, $matches )) {
 						return true;
 					}
