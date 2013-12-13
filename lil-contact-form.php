@@ -3,7 +3,7 @@
 	 * Plugin Name: Lil Contact Form
 	 * Plugin URI: http://www.perihelion.org/
 	 * Description: A super simple contact form with built-in anti-spam features. No settings to adjust, simply add the shortcode [lil_contact] to any page or post to include a contact form.
-	 * Version: 1.1
+	 * Version: 1.2
 	 * Author: Wyatt Kirby
 	 * Author URI: http://wyattkirby.com/
 	 **/
@@ -35,11 +35,15 @@
 				add_action( 'wp_enqueue_scripts', array(&$this, 'plugin_scripts') );
 			}
 
+			public function register_scripts() {
+				
+			}
+
 			public function plugin_scripts() {
 				if(self::has_shortcode('lil_contact')) {
 					wp_enqueue_script('jquery');
-					wp_enqueue_script('jquery-validation', plugins_url('js/jquery.validation.js', __FILE__ ), array('jquery'));
-					wp_enqueue_script('jquery-custom', plugins_url('js/jquery.lil-contact.min.js', __FILE__ ), array('jquery', 'jquery-validation'));
+					wp_enqueue_script('jquery-validation', plugins_url('/js/jquery.validation.js', __FILE__ ), array('jquery'), '1.2', true);
+					wp_enqueue_script('jquery-custom', plugins_url('/js/jquery.lil-contact.min.js', __FILE__ ), array('jquery', 'jquery-validation'), '1.2', true);
 				}
 			}
 
@@ -74,7 +78,7 @@
 					$contact_form .= self::build_input('contact_start', null, 'hidden', date("Y-m-d H:i:s"), false);
 					$contact_form .= self::build_input('fightthematrix', null, 'hidden', null, false);
 					
-					$contact_form .= '<input type="submit" />';
+					$contact_form .= '<input type="submit" class="btn btn-default" />';
 				$contact_form .= '</form>';
 
 
@@ -144,18 +148,23 @@
 			}
 
 			private function build_textarea($input_id, $input_label, $input_val, $required = 'required') {
-				$label = sprintf('<label for="%1$s">%2$s</label>', $input_id, $input_label);
-				$input = sprintf('<textarea id="%1$s" name="%1$s" class="form-control" %3$s>%2$s</textarea>', $input_id, $input_val, $required);
+				$label = sprintf('<label class="control-label" for="%1$s">%2$s</label>', $input_id, $input_label);
+				$input = sprintf('<textarea id="%1$s" name="%1$s" class="form-control" rows="8" %3$s>%2$s</textarea>', $input_id, $input_val, $required);
 				return isset($input_label) ?  $label . $input : $input;
 			}
 
 			private function has_shortcode($shortcode = null) {
-				if($shortcode) {
-					$post = get_post(get_the_ID());
-					preg_match('/'.get_shortcode_regex().'/s', $post->post_content, $matches);
-					if (is_array($matches) && in_array( $shortcode, $matches )) {
-						return true;
-					}
+				if ($shortcode) {
+					global $wp_query;	
+				    
+				    foreach ($wp_query->posts as $post){
+						if (   preg_match_all( '/'. get_shortcode_regex() .'/s', $post->post_content, $matches )
+							&& array_key_exists( 2, $matches )
+							&& in_array( $shortcode, $matches[2] ) )
+						{
+							return true;
+						}    
+				    }
 				}
 
 				return false;
